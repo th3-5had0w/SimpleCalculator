@@ -12,7 +12,7 @@ Calculator::~Calculator()
 bool Calculator::isValidExp(){
     for (auto i : Calculator::internalParseBuffer)
     {
-        if ((i >= ' ' && i <= '\'')
+        if ((i <= '\'')
         || (i == '.')
         || (i == ',')
         || (i >= ':'))
@@ -57,6 +57,28 @@ void Calculator::parseBrackets()
     }
 }
 
+void Calculator::parseArith(std::string buffer)
+{
+    std::vector<unsigned long long> parsedArr;
+    unsigned long long i = 0;
+    unsigned long long tmpFirstPos;
+    while (i < buffer.length())
+    {
+        tmpFirstPos = i;
+        while (buffer[i] != '*' && 
+        buffer[i] != '+' && 
+        buffer[i] != '-' && 
+        buffer[i] != '/' &&
+        i < buffer.length()) ++i;
+        if (i != 0 || i < buffer.length())
+        {
+            std::cout << buffer.substr(tmpFirstPos, i-tmpFirstPos) << std::endl;
+        }
+        ++i;
+    }
+}
+
 void Calculator::parse(){
-    this->parseBrackets();
+    parseArith(this->internalParseBuffer);
+    //this->parseBrackets();
 }
