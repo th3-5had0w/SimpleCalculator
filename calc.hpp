@@ -9,6 +9,7 @@ class Calculator
         std::string internalParseBuffer;
         void parse();
         bool isValidExp();
+        void parseBrackets();
     public:
         Calculator();
         void getInput();
