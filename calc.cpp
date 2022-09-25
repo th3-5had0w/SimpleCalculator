@@ -56,11 +56,137 @@ void Calculator::parseBrackets()
     }
 }
 
+bool Calculator::internalParse(std::vector<unsigned long long> &Arr)
+{
+    unsigned long long x = 1, tmpNum, firstPos;
+    std::vector<std::pair<unsigned long long, unsigned long long>> rangeList;
+    std::pair<unsigned long long, unsigned long long> tmpRange;
+    std::vector<unsigned long long> resList;
+    while (x < Arr.size())
+    {
+        tmpNum = 0;
+        if (Arr[x] == '*' || Arr[x] == '/'){
+            firstPos = x - 1;
+            tmpNum += Arr[x-1];
+            if (Arr[x] == '*')
+            {
+                tmpNum *= Arr[x+1];
+            }
+            else if (Arr[x] == '/')
+            {
+                tmpNum /= Arr[x+1];
+            }
+            x+=2;
+            while ((Arr[x] == '*' || Arr[x] == '/') &&
+            x < Arr.size())
+            {
+                if (Arr[x] == '*')
+                {
+                    tmpNum *= Arr[x+1];
+                }
+                else if (Arr[x] == '/')
+                {
+                    tmpNum /= Arr[x+1];
+                }
+                x+=2;
+            }
+            // == debug perpose
+            for (int ok = firstPos; ok < x; ++ok)
+            {
+                std::cout << Arr[ok] << " ";
+            }
+            std::cout << std::endl;
+            // ==
+            rangeList.push_back({firstPos, x});
+        }
+        x+=2;
+        resList.push_back(tmpNum);
+        std::cout << tmpNum << std::endl;
+    }
+
+    while (rangeList.size() > 0)
+    {
+        tmpRange = rangeList.back();
+        Arr.insert(Arr.begin()+tmpRange.first, resList.back());
+        Arr.erase(Arr.begin()+tmpRange.first+1, Arr.begin()+tmpRange.second+1);
+        // === debug perpose
+        for (int ok = 0; ok < Arr.size(); ++ok)
+            {
+                std::cout << Arr[ok] << " ";
+            }
+        // ===
+        std::cout << std::endl;
+        rangeList.pop_back();
+        resList.pop_back();
+    }
+
+    x = 1;
+    while (x < Arr.size())
+    {
+        tmpNum = 0;
+        if (Arr[x] == '+' || Arr[x] == '-'){
+            firstPos = x - 1;
+            tmpNum += Arr[x-1];
+            if (Arr[x] == '+')
+            {
+                tmpNum += Arr[x+1];
+            }
+            else if (Arr[x] == '-')
+            {
+                tmpNum -= Arr[x+1];
+            }
+            x+=2;
+            while ((Arr[x] == '+' || Arr[x] == '-') &&
+            x < Arr.size())
+            {
+                if (Arr[x] == '+')
+                {
+                    tmpNum += Arr[x+1];
+                }
+                else if (Arr[x] == '-')
+                {
+                    tmpNum -= Arr[x+1];
+                }
+                x+=2;
+            }
+            // == debug perpose
+            for (int ok = firstPos; ok < x; ++ok)
+            {
+                std::cout << Arr[ok] << " ";
+            }
+            std::cout << std::endl;
+            // ==
+            rangeList.push_back({firstPos, x});
+        }
+        x+=2;
+        resList.push_back(tmpNum);
+        std::cout << tmpNum << std::endl;
+    }
+
+    while (rangeList.size() > 0)
+    {
+        tmpRange = rangeList.back();
+        Arr.insert(Arr.begin()+tmpRange.first, resList.back());
+        Arr.erase(Arr.begin()+tmpRange.first+1, Arr.begin()+tmpRange.second+1);
+        // === debug perpose
+        for (int ok = 0; ok < Arr.size(); ++ok)
+            {
+                std::cout << Arr[ok] << " ";
+            }
+        // ===
+        std::cout << std::endl;
+        rangeList.pop_back();
+        resList.pop_back();
+    }    
+    return 1;
+}
+
 bool Calculator::parseArith(std::string buffer)
 {
     std::vector<unsigned long long> parsedArr;
     std::vector<unsigned long long> operatorPos;
     unsigned long long i = 0;
+    unsigned long long x;
     unsigned long long tmpFirstPos;
     unsigned long long tmpNum;
     unsigned char tmpLast = buffer[buffer.length()-1];
@@ -102,32 +228,10 @@ bool Calculator::parseArith(std::string buffer)
         }
 
         if (i < buffer.length()) parsedArr.push_back(buffer[i]);
-
         ++i;
     }
-    
-    for (int x = 0; x < parsedArr.size(); ++x)
-    {
-        if (parsedArr[x] == '*')
-        {
-            operatorPos.push_back(x);
-        }
-    }
 
-    int tmpPos;
-    while (operatorPos.size() > 0)
-    {
-        tmpPos = operatorPos[operatorPos.size()-1];
-        std::cout << "taking " << parsedArr[tmpPos-1] << " and " << parsedArr[tmpPos+1] << std::endl;
-        parsedArr.insert(parsedArr.begin()+tmpPos-1, parsedArr[tmpPos-1] * parsedArr[tmpPos+1]);
-        parsedArr.erase(parsedArr.begin()+tmpPos,parsedArr.begin()+tmpPos+3);
-        operatorPos.pop_back();
-    }
-
-    for (auto x : parsedArr)
-    {
-        std::cout << x << std::endl;
-    }
+    this->internalParse(parsedArr);
     return 1;
     ERROR_MATH_SIGN_PLACEMENT:
     std::cout << "Error math operator sign placement" << std::endl;
@@ -137,4 +241,4 @@ bool Calculator::parseArith(std::string buffer)
 void Calculator::parse(){
     parseArith(this->internalParseBuffer);
     //this->parseBrackets();
-}
+}   

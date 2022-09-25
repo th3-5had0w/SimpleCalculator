@@ -13,6 +13,7 @@ class Calculator
         bool isValidExp();
         void parseBrackets();
         bool parseArith(std::string buffer);
+        bool internalParse(std::vector<unsigned long long> &Arr);
     public:
         Calculator();
         void getInput();
