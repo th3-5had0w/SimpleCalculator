@@ -16,7 +16,7 @@ bool Calculator::isValidExp(){
         || (i == ',')
         || (i >= ':'))
         {
-            std::cout << "Weird characters not allowed in expression!" << std::endl;
+            std::cout << "[Calculator::isValidExp] Weird characters not allowed in expression" << std::endl;
             return 0;
         }
     }
@@ -27,36 +27,94 @@ void Calculator::getInput()
 {
     do 
     {
+        std::cout << ">> ";
         if (Calculator::internalParseBuffer.empty() == true)
         {
-            std::getline(std::cin, Calculator::internalParseBuffer);
+            std::getline(std::cin, this->internalParseBuffer);
+            if (std::cin.eof()) 
+            {
+                std::cout << std::endl;
+                exit(1);
+            }
         }
         else
         {
-            Calculator::internalParseBuffer.clear();
+            this->internalParseBuffer.clear();
             std::getline(std::cin, this->internalParseBuffer);
+            if (std::cin.eof()) 
+            {
+                std::cout << std::endl;
+                exit(1);
+            }
         }
     } while (!this->isValidExp());
-    this->parse();
+    this->parseExpression();
 }
 
-void Calculator::parseBrackets()
+bool Calculator::parseBrackets(std::string buffer)
 {
+    std::string tmpBufOrigin = buffer;
+    std::string tmpBuf1, tmpBuf2, tmpBuf;
+    unsigned long long tmpNum;
     long long open_bracket_pos;
     long long close_bracket_pos;
-    while (1)
+
+    close_bracket_pos = tmpBufOrigin.find_first_of(")");
+    open_bracket_pos = tmpBufOrigin.substr(0, close_bracket_pos).find_last_of("(");
+
+    while (open_bracket_pos != -1 || close_bracket_pos != -1)
     {
-        close_bracket_pos = this->internalParseBuffer.find_first_of(")");
-        open_bracket_pos = this->internalParseBuffer.find_last_of("(");
-        if (open_bracket_pos != -1 && close_bracket_pos != -1){
-            std::cout << this->internalParseBuffer.substr(0, open_bracket_pos) << std::endl;
-            std::cout << this->internalParseBuffer.substr(close_bracket_pos+1, this->internalParseBuffer.length()) << std::endl;
+        //std::cout << open_bracket_pos << std::endl;
+        //std::cout << close_bracket_pos << std::endl;
+        if (open_bracket_pos + 1 == close_bracket_pos){
+            goto ERROR_BRACKET_PARSE;
         }
-        break;
+
+        if (open_bracket_pos > close_bracket_pos){
+            goto ERROR_BRACKET_PARSE;
+        }
+
+        if ((open_bracket_pos != close_bracket_pos) &&
+        ((open_bracket_pos | close_bracket_pos) == -1)){
+            goto ERROR_BRACKET_PARSE;
+        }
+        if (this->parseArith(tmpBufOrigin.substr(open_bracket_pos+1, close_bracket_pos-open_bracket_pos-1), tmpNum) == 0)
+        {
+            return 0;
+        }
+        tmpBuf1 = tmpBufOrigin.substr(0, open_bracket_pos);
+        tmpBuf2 = tmpBufOrigin.substr(close_bracket_pos+1, tmpBufOrigin.size());
+        tmpBuf = tmpBuf1;
+        if (open_bracket_pos > 0)
+        {
+            if ((tmpBufOrigin[open_bracket_pos-1] == ')') ||
+            ((tmpBufOrigin[open_bracket_pos-1] >= '0') && (tmpBufOrigin[open_bracket_pos-1] <= '9')))
+            {
+                tmpBuf+='*';
+            }
+        }
+        tmpBuf += std::to_string(tmpNum);
+        if ((close_bracket_pos < tmpBufOrigin.size()-1))
+        {
+            if ((tmpBufOrigin[close_bracket_pos+1] == '(') ||
+            ((tmpBufOrigin[close_bracket_pos+1] >= '0') && (tmpBufOrigin[close_bracket_pos+1] <= '9')))
+            {
+                tmpBuf+='*';
+            }
+        }
+        tmpBuf += tmpBuf2;
+        tmpBufOrigin = tmpBuf;
+        close_bracket_pos = tmpBufOrigin.find_first_of(")");
+        open_bracket_pos = tmpBufOrigin.substr(0, close_bracket_pos).find_last_of("(");
     }
+    this->internalParseBuffer = tmpBufOrigin;
+    return 1;
+ERROR_BRACKET_PARSE:
+    std::cout << "[Calculator::parseBrackets] Error" << std::endl;
+    return 0;
 }
 
-bool Calculator::internalParse(std::vector<unsigned long long> &Arr)
+unsigned long long Calculator::internalParse(std::vector<unsigned long long> &Arr)
 {
     unsigned long long x = 1, tmpNum, firstPos;
     std::vector<std::pair<unsigned long long, unsigned long long>> rangeList;
@@ -91,17 +149,18 @@ bool Calculator::internalParse(std::vector<unsigned long long> &Arr)
                 x+=2;
             }
             // == debug perpose
+            /*
             for (int ok = firstPos; ok < x; ++ok)
             {
                 std::cout << Arr[ok] << " ";
             }
             std::cout << std::endl;
+            */
             // ==
             rangeList.push_back({firstPos, x});
         }
         x+=2;
         resList.push_back(tmpNum);
-        std::cout << tmpNum << std::endl;
     }
 
     while (rangeList.size() > 0)
@@ -110,12 +169,14 @@ bool Calculator::internalParse(std::vector<unsigned long long> &Arr)
         Arr.insert(Arr.begin()+tmpRange.first, resList.back());
         Arr.erase(Arr.begin()+tmpRange.first+1, Arr.begin()+tmpRange.second+1);
         // === debug perpose
+        /*
         for (int ok = 0; ok < Arr.size(); ++ok)
             {
                 std::cout << Arr[ok] << " ";
             }
-        // ===
         std::cout << std::endl;
+        */
+        // ===
         rangeList.pop_back();
         resList.pop_back();
     }
@@ -150,17 +211,18 @@ bool Calculator::internalParse(std::vector<unsigned long long> &Arr)
                 x+=2;
             }
             // == debug perpose
+            /*
             for (int ok = firstPos; ok < x; ++ok)
             {
                 std::cout << Arr[ok] << " ";
             }
             std::cout << std::endl;
+            */
             // ==
             rangeList.push_back({firstPos, x});
         }
         x+=2;
         resList.push_back(tmpNum);
-        std::cout << tmpNum << std::endl;
     }
 
     while (rangeList.size() > 0)
@@ -169,19 +231,21 @@ bool Calculator::internalParse(std::vector<unsigned long long> &Arr)
         Arr.insert(Arr.begin()+tmpRange.first, resList.back());
         Arr.erase(Arr.begin()+tmpRange.first+1, Arr.begin()+tmpRange.second+1);
         // === debug perpose
+        /*
         for (int ok = 0; ok < Arr.size(); ++ok)
             {
                 std::cout << Arr[ok] << " ";
             }
-        // ===
         std::cout << std::endl;
+        */
+        // ===
         rangeList.pop_back();
         resList.pop_back();
     }    
-    return 1;
+    return Arr[0];
 }
 
-bool Calculator::parseArith(std::string buffer)
+bool Calculator::parseArith(std::string buffer, unsigned long long &resNum)
 {
     std::vector<unsigned long long> parsedArr;
     std::vector<unsigned long long> operatorPos;
@@ -231,14 +295,22 @@ bool Calculator::parseArith(std::string buffer)
         ++i;
     }
 
-    this->internalParse(parsedArr);
+    resNum = this->internalParse(parsedArr);
     return 1;
     ERROR_MATH_SIGN_PLACEMENT:
-    std::cout << "Error math operator sign placement" << std::endl;
+    std::cout << "[Calculator::parseArith] Error math operator sign placement" << std::endl;
     return 0;
 }
 
-void Calculator::parse(){
-    parseArith(this->internalParseBuffer);
-    //this->parseBrackets();
+void Calculator::parseExpression(){
+    unsigned long long resNum;
+    if (!this->parseBrackets(this->internalParseBuffer))
+    {
+        return;
+    }
+    if (!parseArith(this->internalParseBuffer, resNum))
+    {
+        return;
+    }
+    std::cout << resNum << std::endl;
 }   

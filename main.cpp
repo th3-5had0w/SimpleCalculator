@@ -3,5 +3,7 @@
 int main()
 {
     Calculator calc;
-    calc.getInput();
+    while (1){
+        calc.getInput();   
+    }
 }

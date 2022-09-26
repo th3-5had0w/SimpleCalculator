@@ -9,14 +9,13 @@ class Calculator
 {
     private:
         std::string internalParseBuffer;
-        void parse();
+        void parseExpression();
         bool isValidExp();
-        void parseBrackets();
-        bool parseArith(std::string buffer);
-        bool internalParse(std::vector<unsigned long long> &Arr);
+        bool parseBrackets(std::string buffer);
+        bool parseArith(std::string buffer, unsigned long long &resNum);
+        unsigned long long internalParse(std::vector<unsigned long long> &Arr);
     public:
         Calculator();
         void getInput();
         ~Calculator();
-        void getData();
 };
