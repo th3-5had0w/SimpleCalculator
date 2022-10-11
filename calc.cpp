@@ -303,7 +303,7 @@ bool Calculator::parseArith(std::string buffer, unsigned long long &resNum)
 }
 
 void Calculator::parseExpression(){
-    unsigned long long resNum;
+    long long resNum;
     if (!this->parseBrackets(this->internalParseBuffer))
     {
         return;
